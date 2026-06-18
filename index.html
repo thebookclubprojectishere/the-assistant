@@ -28,6 +28,7 @@
     .container {
       text-align: center;
       max-width: 400px;
+      width: 100%;
     }
 
     h1 {
@@ -40,6 +41,7 @@
       font-size: 16px;
       line-height: 1.6;
       color: #7a6f63;
+      margin-bottom: 20px;
     }
 
     .badge {
@@ -51,15 +53,82 @@
       font-size: 14px;
       color: #5b4f43;
     }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #d8cdbe;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: inherit;
+      margin-bottom: 12px;
+      background: white;
+      color: #3a3530;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #5b4f43;
+      color: white;
+      font-size: 16px;
+      font-family: inherit;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    button:active {
+      background: #4a3f35;
+    }
+
+    .entry {
+      background: white;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      text-align: right;
+      border: 1px solid #e8ddd0;
+    }
+
+    .error {
+      color: #b3493a;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+
+  <!-- מסך נעילה - מוצג בכניסה לאפליקציה -->
+  <div class="container" id="lock-screen">
     <h1>פתקים</h1>
-    <p>זהו עדיין שלד ראשוני בלבד - מסך פתיחה פשוט.<br>בשלבים הבאים נוסיף כתיבה, הצפנה, תיוג וחיפוש.</p>
-    <div class="badge">שלב 2 מתוך 6 - אפליקציה להתקנה</div>
+    <p>הזיני את הפספרייז שלך כדי לפתוח</p>
+    <input type="password" id="passphrase-input" placeholder="פספרייז" autocomplete="off">
+    <div class="error hidden" id="lock-error">פספרייז שגוי, או שאלה הפעם הראשונה - ננסה שוב</div>
+    <button id="unlock-button">פתיחה</button>
   </div>
 
+  <!-- מסך ראשי - מוצג רק אחרי פתיחה מוצלחת -->
+  <div class="container hidden" id="main-screen">
+    <h1>פתקים</h1>
+    <textarea id="new-entry-text" placeholder="כתבי פתק לבדיקה..."></textarea>
+    <button id="save-button">שמירה (מוצפן)</button>
+    <div id="entries-list"></div>
+    <div class="badge">שלב 3 מתוך 6 - הצפנה ואחסון</div>
+  </div>
+
+  <script src="./crypto-storage.js"></script>
   <script>
     // רושם את ה-service worker, מה שמאפשר עבודה בלי אינטרנט
     if ('serviceWorker' in navigator) {
@@ -69,6 +138,63 @@
           .catch((err) => console.error('Service worker registration failed', err));
       });
     }
+
+    // משתנה שמחזיק את מפתח ההצפנה בזיכרון בלבד - לעולם לא נשמר לדיסק
+    let encryptionKey = null;
+
+    const lockScreen = document.getElementById('lock-screen');
+    const mainScreen = document.getElementById('main-screen');
+    const passphraseInput = document.getElementById('passphrase-input');
+    const unlockButton = document.getElementById('unlock-button');
+    const lockError = document.getElementById('lock-error');
+    const newEntryText = document.getElementById('new-entry-text');
+    const saveButton = document.getElementById('save-button');
+    const entriesList = document.getElementById('entries-list');
+
+    async function handleUnlock() {
+      const passphrase = passphraseInput.value;
+      if (!passphrase) return;
+
+      try {
+        const key = await SecureStorage.unlock(passphrase);
+        // מנסים לטעון את כל הפתקים הקיימים - אם הפספרייז שגוי, הפענוח יכשל כאן
+        const entries = await SecureStorage.loadAllEntries(key);
+
+        encryptionKey = key;
+        lockError.classList.add('hidden');
+        lockScreen.classList.add('hidden');
+        mainScreen.classList.remove('hidden');
+        renderEntries(entries);
+      } catch (err) {
+        lockError.classList.remove('hidden');
+      }
+    }
+
+    async function handleSave() {
+      const text = newEntryText.value.trim();
+      if (!text || !encryptionKey) return;
+
+      await SecureStorage.saveEntry(encryptionKey, text, []);
+      newEntryText.value = '';
+
+      const entries = await SecureStorage.loadAllEntries(encryptionKey);
+      renderEntries(entries);
+    }
+
+    function renderEntries(entries) {
+      entriesList.innerHTML = '';
+      entries
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .forEach((entry) => {
+          const div = document.createElement('div');
+          div.className = 'entry';
+          div.textContent = entry.content;
+          entriesList.appendChild(div);
+        });
+    }
+
+    unlockButton.addEventListener('click', handleUnlock);
+    saveButton.addEventListener('click', handleSave);
   </script>
 </body>
 </html>
