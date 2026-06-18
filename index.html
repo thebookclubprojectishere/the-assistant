@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>פתקים</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#5b4f43">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f5f1eb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #3a3530;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 400px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 12px;
+      color: #5b4f43;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #7a6f63;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 8px 16px;
+      background: #e8ddd0;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #5b4f43;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>פתקים</h1>
+    <p>זהו עדיין שלד ראשוני בלבד - מסך פתיחה פשוט.<br>בשלבים הבאים נוסיף כתיבה, הצפנה, תיוג וחיפוש.</p>
+    <div class="badge">שלב 2 מתוך 6 - אפליקציה להתקנה</div>
+  </div>
+
+  <script>
+    // רושם את ה-service worker, מה שמאפשר עבודה בלי אינטרנט
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(() => console.log('Service worker registered'))
+          .catch((err) => console.error('Service worker registration failed', err));
+      });
+    }
+  </script>
+</body>
+</html>
