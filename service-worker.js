@@ -1,5 +1,5 @@
 // שם וגרסה לקאש (אחסון זמני של קבצים) - כששנה את הקוד בעתיד, נשנה את המספר כדי שהדפדפן יידע לעדכן
-const CACHE_NAME = 'personal-notes-v1';
+const CACHE_NAME = 'personal-notes-v2';
 
 // כל הקבצים שצריך לשמור כדי שהאפליקציה תעבוד בלי אינטרנט
 const FILES_TO_CACHE = [
@@ -7,6 +7,7 @@ const FILES_TO_CACHE = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  './crypto-storage.js',
 ];
 
 // כשה-service worker "מותקן" לראשונה - שומר את כל הקבצים החשובים בקאש
